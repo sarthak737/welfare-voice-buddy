@@ -1,204 +1,134 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import { toast } from "sonner";
-import { MicrophoneIcon, StopIcon, PlayIcon } from "@heroicons/react/24/solid";
-import Link from "next/link";
+import { useState } from "react";
+import SpeechRecognition, {
+  useSpeechRecognition,
+} from "react-speech-recognition";
 import { Button } from "@/components/ui/button";
-import { Mic } from "lucide-react";
+import { Mic, StopCircle, Volume2 } from "lucide-react";
 
-type VoiceHistoryEntry = {
-  command: string;
-  response: string;
-  time: string;
-};
-
-export default function VoiceBuddyPage() {
-  const [isListening, setIsListening] = useState(false);
-  const [transcript, setTranscript] = useState("");
+export default function VoiceBuddyLite() {
   const [response, setResponse] = useState("");
-  const [isSpeaking, setIsSpeaking] = useState(false);
-  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const [loading, setLoading] = useState(false);
+  const {
+    transcript,
+    listening,
+    resetTranscript,
+    browserSupportsSpeechRecognition,
+  } = useSpeechRecognition();
 
-  const startListening = () => {
-    if (!("webkitSpeechRecognition" in window)) {
-      toast.error("Speech recognition not supported in this browser.");
-      return;
-    }
+  const nativeSupport =
+    typeof window !== "undefined" &&
+    (window.SpeechRecognition || window.webkitSpeechRecognition);
 
-    if (recognitionRef.current) {
-      recognitionRef.current.start();
-      return;
-    }
+  const isSupported =
+    browserSupportsSpeechRecognition || Boolean(nativeSupport);
 
-    const SpeechRecognition = (window as any).webkitSpeechRecognition;
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
-      console.error("Speech recognition error", event.error);
-      toast.error(`Microphone error: ${event.error}`);
-      setIsListening(false);
-    };
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let interim = "";
-      let final = "";
-
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const result = event.results[i];
-        const text = result[0].transcript;
-        result.isFinal ? (final += text + " ") : (interim += text);
-      }
-
-      setTranscript(final || interim);
-
-      if (final.trim()) {
-        setResponse("");
-        processVoiceCommand(final.trim());
-      }
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
+  const speak = (text: string) => {
+    const utter = new SpeechSynthesisUtterance(text);
+    window.speechSynthesis.speak(utter);
   };
 
-  const stopListening = () => {
-    recognitionRef.current?.stop();
-  };
+  const handleProcess = async () => {
+    if (!transcript.trim()) return;
 
-  const processVoiceCommand = async (command: string) => {
+    setLoading(true);
     try {
       const res = await fetch("/api/voice", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ command }),
+        body: JSON.stringify({ command: transcript }),
       });
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
 
       const data = await res.json();
       const reply = data.response || "I didn't understand that.";
-
       setResponse(reply);
-      speakResponse(reply);
-      toast.success("AI responded");
-
-      const now = new Date().toLocaleString();
-      const newEntry: VoiceHistoryEntry = {
-        command,
-        response: reply,
-        time: now,
-      };
-      const existing: VoiceHistoryEntry[] = JSON.parse(
-        localStorage.getItem("voice-history") || "[]"
-      );
-      localStorage.setItem(
-        "voice-history",
-        JSON.stringify([newEntry, ...existing.slice(0, 49)]) // Limit to 50 entries
-      );
+      speak(reply);
     } catch (err) {
       console.error("API error:", err);
-      toast.error("Failed to process your request");
-      setResponse("Error processing your request. Please try again.");
+      setResponse("Error processing voice command.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  const speakResponse = (text: string) => {
-    if (!("speechSynthesis" in window)) {
-      toast.warning("Text-to-speech not supported in this browser");
-      return;
+  const toggleListening = () => {
+    if (listening) {
+      SpeechRecognition.stopListening();
+      handleProcess();
+    } else {
+      resetTranscript();
+      setResponse("");
+      SpeechRecognition.startListening({
+        continuous: true,
+        language: "en-US",
+      });
     }
-
-    setIsSpeaking(true);
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1;
-    utterance.pitch = 1;
-    utterance.volume = 1;
-    utterance.onend = () => setIsSpeaking(false);
-    utterance.onerror = () => {
-      setIsSpeaking(false);
-      toast.error("Error speaking response");
-    };
-    window.speechSynthesis.speak(utterance);
   };
 
-  useEffect(() => {
-    return () => {
-      if (recognitionRef.current) {
-        recognitionRef.current.stop();
-      }
-      window.speechSynthesis.cancel();
-    };
-  }, []);
+  if (!isSupported) {
+    return (
+      <p className="text-red-500 text-center mt-8">
+        ❌ Browser doesn't support Speech Recognition.
+      </p>
+    );
+  }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-100 to-pink-200 p-4 dark:from-gray-900 dark:to-black">
-      <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg max-w-md w-full">
-        <div className="flex flex-col items-center gap-4">
-          <div className="relative">
-            <button
-              onClick={isListening ? stopListening : startListening}
-              className={`p-4 rounded-full ${
-                isListening ? "bg-red-500" : "bg-blue-600"
-              } text-white transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
-              aria-label={isListening ? "Stop listening" : "Start listening"}
-              aria-live="polite"
-            >
-              {isListening ? (
-                <StopIcon className="h-8 w-8" />
-              ) : (
-                <MicrophoneIcon className="h-8 w-8" />
-              )}
-            </button>
-            {isListening && (
-              <div className="absolute -inset-2 border-2 border-red-500 rounded-full animate-pulse pointer-events-none"></div>
+    <main className="min-h-screen flex items-center justify-center bg-gray-900 text-white p-4">
+      <div className="bg-gray-800 p-6 rounded-xl w-full max-w-md space-y-6 shadow-lg">
+        <h1 className="text-2xl font-bold text-center">Voice Buddy</h1>
+
+        <div className="flex justify-center">
+          <Button
+            onClick={toggleListening}
+            disabled={loading}
+            className="text-white bg-blue-600 hover:bg-blue-700"
+          >
+            {listening ? (
+              <StopCircle className="w-5 h-5 mr-2" />
+            ) : (
+              <Mic className="w-5 h-5 mr-2" />
             )}
-          </div>
-
-          <div className="w-full">
-            <div className="bg-gray-800 rounded-lg p-4 min-h-32 max-h-64 overflow-y-auto">
-              {transcript && (
-                <div className="mb-4">
-                  <p className="text-sm text-gray-400">You said:</p>
-                  <p className="text-white">{transcript}</p>
-                </div>
-              )}
-              {response && (
-                <div>
-                  <p className="text-sm text-gray-400">Response:</p>
-                  <p className="text-white">{response}</p>
-                </div>
-              )}
-              {!transcript && !response && (
-                <p className="text-gray-400 text-center py-8">
-                  {isListening
-                    ? "Listening... Speak now"
-                    : "Press the microphone to start"}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {isSpeaking && (
-            <div className="flex items-center gap-2 text-blue-400">
-              <PlayIcon className="h-4 w-4 animate-pulse" />
-              <span>Speaking...</span>
-            </div>
-          )}
-
-          <Link href="/history" passHref legacyBehavior>
-            <Button className="mt-4 text-lg px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-              <Mic className="mr-2 h-5 w-5" />
-              View History
-            </Button>
-          </Link>
+            {listening ? "Stop" : "Start"}
+          </Button>
         </div>
+
+        <div className="bg-gray-700 rounded-lg p-4 min-h-24">
+          {transcript ? (
+            <>
+              <p className="text-sm text-gray-400">You said:</p>
+              <p className="text-white">{transcript}</p>
+            </>
+          ) : (
+            <p className="text-gray-400 text-center">Press start and speak</p>
+          )}
+        </div>
+
+        <div className="bg-gray-700 rounded-lg p-4 min-h-24">
+          {response ? (
+            <>
+              <p className="text-sm text-gray-400">Response:</p>
+              <p className="text-white">{response}</p>
+            </>
+          ) : (
+            <p className="text-gray-400 text-center">
+              Response will appear here
+            </p>
+          )}
+        </div>
+
+        {response && (
+          <div className="flex justify-center">
+            <Button
+              onClick={() => speak(response)}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <Volume2 className="w-5 h-5 mr-2" />
+              Speak Again
+            </Button>
+          </div>
+        )}
       </div>
     </main>
   );
