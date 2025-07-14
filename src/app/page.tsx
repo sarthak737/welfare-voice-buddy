@@ -5,6 +5,7 @@ import { Sun, Moon, Mic, Brain, MessageCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import Image from "next/image";
 
 export default function LandingPage() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
@@ -22,6 +23,9 @@ export default function LandingPage() {
         <Button
           variant="ghost"
           onClick={() => setTheme(theme === "light" ? "dark" : "light")}
+          aria-label={
+            theme === "light" ? "Switch to dark mode" : "Switch to light mode"
+          }
         >
           {theme === "light" ? (
             <Moon className="h-6 w-6" />
@@ -45,7 +49,7 @@ export default function LandingPage() {
             Your voice-powered AI buddy to assist, respond and understand you in
             real-time. Say goodbye to typing.
           </p>
-          <Link href="/voice-buddy">
+          <Link href="/voice-buddy" passHref legacyBehavior>
             <Button className="text-lg px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
               <Mic className="mr-2 h-5 w-5" /> Start Talking
             </Button>
@@ -57,10 +61,13 @@ export default function LandingPage() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8 }}
         >
-          <img
+          <Image
             src="/voice-buddy-illustration.png"
             alt="Voice Buddy Illustration"
             className="w-full max-w-md"
+            width={500}
+            height={500}
+            priority
           />
         </motion.div>
       </section>
@@ -97,15 +104,13 @@ export default function LandingPage() {
   );
 }
 
-function Feature({
-  icon,
-  title,
-  text,
-}: {
-  icon: JSX.Element;
+type FeatureProps = {
+  icon: React.ReactNode;
   title: string;
   text: string;
-}) {
+};
+
+function Feature({ icon, title, text }: FeatureProps) {
   return (
     <motion.div
       className="flex flex-col items-center p-6 bg-gray-100 dark:bg-gray-800 rounded-xl shadow-md"

@@ -3,13 +3,22 @@
 import { useState, useRef, useEffect } from "react";
 import { toast } from "sonner";
 import { MicrophoneIcon, StopIcon, PlayIcon } from "@heroicons/react/24/solid";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Mic } from "lucide-react";
+
+type VoiceHistoryEntry = {
+  command: string;
+  response: string;
+  time: string;
+};
 
 export default function VoiceBuddyPage() {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState("");
   const [response, setResponse] = useState("");
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const startListening = () => {
     if (!("webkitSpeechRecognition" in window)) {
@@ -22,19 +31,20 @@ export default function VoiceBuddyPage() {
       return;
     }
 
-    const recognition = new (window as any).webkitSpeechRecognition();
+    const SpeechRecognition = (window as any).webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
     recognition.continuous = true;
     recognition.interimResults = true;
 
     recognition.onstart = () => setIsListening(true);
     recognition.onend = () => setIsListening(false);
-    recognition.onerror = (event: any) => {
+    recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
       console.error("Speech recognition error", event.error);
-      toast.error(`Mic error: ${event.error}`);
+      toast.error(`Microphone error: ${event.error}`);
       setIsListening(false);
     };
 
-    recognition.onresult = (event: any) => {
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
       let interim = "";
       let final = "";
 
@@ -68,49 +78,77 @@ export default function VoiceBuddyPage() {
         body: JSON.stringify({ command }),
       });
 
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+
       const data = await res.json();
-      const reply = data.response || "No response.";
+      const reply = data.response || "I didn't understand that.";
 
       setResponse(reply);
       speakResponse(reply);
       toast.success("AI responded");
 
       const now = new Date().toLocaleString();
-      const newEntry = { command, response: reply, time: now };
-      const existing = JSON.parse(
+      const newEntry: VoiceHistoryEntry = {
+        command,
+        response: reply,
+        time: now,
+      };
+      const existing: VoiceHistoryEntry[] = JSON.parse(
         localStorage.getItem("voice-history") || "[]"
       );
       localStorage.setItem(
         "voice-history",
-        JSON.stringify([newEntry, ...existing])
+        JSON.stringify([newEntry, ...existing.slice(0, 49)]) // Limit to 50 entries
       );
     } catch (err) {
       console.error("API error:", err);
-      toast.error("Something went wrong");
-      setResponse("Error processing your request.");
+      toast.error("Failed to process your request");
+      setResponse("Error processing your request. Please try again.");
     }
   };
 
   const speakResponse = (text: string) => {
-    if (!("speechSynthesis" in window)) return;
+    if (!("speechSynthesis" in window)) {
+      toast.warning("Text-to-speech not supported in this browser");
+      return;
+    }
 
     setIsSpeaking(true);
     const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
     utterance.onend = () => setIsSpeaking(false);
+    utterance.onerror = () => {
+      setIsSpeaking(false);
+      toast.error("Error speaking response");
+    };
     window.speechSynthesis.speak(utterance);
   };
 
+  useEffect(() => {
+    return () => {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      window.speechSynthesis.cancel();
+    };
+  }, []);
+
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-100 to-pink-200 p-4 dark:from-gray-900 dark:to-black">
-      <div className="voice-buddy-container bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg max-w-md w-full">
+      <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-lg max-w-md w-full">
         <div className="flex flex-col items-center gap-4">
           <div className="relative">
             <button
               onClick={isListening ? stopListening : startListening}
               className={`p-4 rounded-full ${
                 isListening ? "bg-red-500" : "bg-blue-600"
-              } text-white transition-all hover:scale-105`}
+              } text-white transition-all hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2`}
               aria-label={isListening ? "Stop listening" : "Start listening"}
+              aria-live="polite"
             >
               {isListening ? (
                 <StopIcon className="h-8 w-8" />
@@ -119,7 +157,7 @@ export default function VoiceBuddyPage() {
               )}
             </button>
             {isListening && (
-              <div className="absolute -inset-2 border-2 border-red-500 rounded-full animate-pulse"></div>
+              <div className="absolute -inset-2 border-2 border-red-500 rounded-full animate-pulse pointer-events-none"></div>
             )}
           </div>
 
@@ -137,6 +175,13 @@ export default function VoiceBuddyPage() {
                   <p className="text-white">{response}</p>
                 </div>
               )}
+              {!transcript && !response && (
+                <p className="text-gray-400 text-center py-8">
+                  {isListening
+                    ? "Listening... Speak now"
+                    : "Press the microphone to start"}
+                </p>
+              )}
             </div>
           </div>
 
@@ -146,13 +191,14 @@ export default function VoiceBuddyPage() {
               <span>Speaking...</span>
             </div>
           )}
+
+          <Link href="/history" passHref legacyBehavior>
+            <Button className="mt-4 text-lg px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
+              <Mic className="mr-2 h-5 w-5" />
+              View History
+            </Button>
+          </Link>
         </div>
-        <Link href="/history">
-          <Button className="text-lg px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl">
-            <Mic className="mr-2 h-5 w-5" />
-            See history
-          </Button>
-        </Link>
       </div>
     </main>
   );
