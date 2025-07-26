@@ -1,17 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import { Toaster } from "sonner";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-  display: "swap", // Improves font loading performance
-  preload: true,
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-inter",
   subsets: ["latin"],
   display: "swap",
   preload: true,
@@ -19,22 +11,32 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Voice Buddy - AI Voice Assistant",
-    template: "%s | Voice Buddy",
+    default: "Digital Companion - Government Services Made Simple",
+    template: "%s | Digital Companion",
   },
   description:
-    "A powerful AI voice assistant that responds to your voice commands with intelligent conversations and helpful responses.",
+    "Break language barriers and access government welfare schemes effortlessly. Voice-first AI companion helping citizens navigate benefits, applications, and services in their native language.",
   keywords: [
+    "government services",
+    "welfare schemes",
     "voice assistant",
-    "AI",
-    "speech recognition",
-    "voice commands",
-    "artificial intelligence",
-    "voice chat",
+    "multilingual support",
+    "digital inclusion",
+    "accessibility",
+    "Hindi",
+    "Punjabi",
+    "Bengali",
+    "Tamil",
+    "Aadhaar",
+    "ration card",
+    "pension schemes",
+    "housing schemes",
+    "rural services",
+    "citizen services",
   ],
-  authors: [{ name: "Voice Buddy Team" }],
-  creator: "Voice Buddy",
-  publisher: "Voice Buddy",
+  authors: [{ name: "Digital Companion Team" }],
+  creator: "Digital Companion",
+  publisher: "Digital Companion Initiative",
   formatDetection: {
     email: false,
     address: false,
@@ -50,26 +52,26 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "/",
-    title: "Voice Buddy - AI Voice Assistant",
+    title: "Digital Companion - Government Services Made Simple",
     description:
-      "A powerful AI voice assistant that responds to your voice commands with intelligent conversations and helpful responses.",
-    siteName: "Voice Buddy",
+      "Voice-first AI companion helping citizens access welfare schemes and government services in their native language. No forms, no travel, no confusion.",
+    siteName: "Digital Companion",
     images: [
       {
-        url: "/og-image.png", // You'll need to create this
+        url: "/voice-buddy-illustration.png",
         width: 1200,
         height: 630,
-        alt: "Voice Buddy - AI Voice Assistant",
+        alt: "Digital Companion - Accessible Government Services",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Voice Buddy - AI Voice Assistant",
+    title: "Digital Companion - Government Services Made Simple",
     description:
-      "A powerful AI voice assistant that responds to your voice commands with intelligent conversations and helpful responses.",
-    images: ["/og-image.png"],
-    creator: "@voicebuddy", // Replace with your actual Twitter handle
+      "Voice-first AI companion helping citizens access welfare schemes in their native language. Designed for everyone, everywhere.",
+    images: ["/voice-buddy-illustration.png"],
+    creator: "@digitalcompanion",
   },
   robots: {
     index: true,
@@ -83,20 +85,19 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    // Add your verification codes here
+    // Add verification codes when ready for production
     // google: "your-google-verification-code",
-    // yandex: "your-yandex-verification-code",
   },
 };
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 5, // Allow some zoom for accessibility
+  maximumScale: 5,
   userScalable: true,
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#ffffff" },
-    { media: "(prefers-color-scheme: dark)", color: "#000000" },
+    { media: "(prefers-color-scheme: dark)", color: "#1f2937" },
   ],
   colorScheme: "dark light",
 };
@@ -107,13 +108,9 @@ interface RootLayoutProps {
 
 export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable}`}
-      suppressHydrationWarning // Only for the html tag to prevent theme flash
-    >
+    <html lang="en" className={inter.variable} suppressHydrationWarning>
       <head>
-        {/* Preconnect to external domains for better performance */}
+        {/* Performance optimizations */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link
           rel="preconnect"
@@ -121,76 +118,78 @@ export default function RootLayout({ children }: Readonly<RootLayoutProps>) {
           crossOrigin="anonymous"
         />
 
-        {/* Favicon and app icons */}
+        {/* App icons and favicon */}
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/manifest.json" />
 
-        {/* DNS prefetch for external APIs */}
-        <link rel="dns-prefetch" href="https://api.together.xyz" />
+        {/* DNS prefetch for potential API endpoints */}
+        <link rel="dns-prefetch" href="https://api.openai.com" />
 
-        {/* Security headers */}
+        {/* Security and privacy headers */}
         <meta httpEquiv="X-Content-Type-Options" content="nosniff" />
         <meta
           httpEquiv="Referrer-Policy"
           content="strict-origin-when-cross-origin"
         />
+        <meta httpEquiv="X-Frame-Options" content="DENY" />
+
+        {/* Language and cultural meta tags */}
+        <meta name="language" content="English,Hindi,Punjabi,Bengali,Tamil" />
+        <meta name="geo.region" content="IN" />
+        <meta name="geo.country" content="India" />
+
+        {/* Accessibility improvements */}
+        <meta name="theme-color" content="#10b981" />
+        <meta name="msapplication-TileColor" content="#10b981" />
+
+        {/* Social impact and purpose */}
+        <meta property="article:section" content="Social Impact" />
+        <meta property="article:tag" content="Digital Inclusion" />
+        <meta property="article:tag" content="Government Services" />
+        <meta property="article:tag" content="Voice Technology" />
       </head>
-      <body className="antialiased min-h-screen bg-background text-foreground">
-        {/* Skip to main content for accessibility */}
+
+      <body className="antialiased min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 dark:from-slate-900 dark:via-blue-900 dark:to-indigo-900 text-gray-900 dark:text-white transition-colors duration-300">
+        {/* Skip navigation for accessibility */}
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-primary-foreground px-4 py-2 rounded-md z-50"
+          className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-green-600 text-white px-4 py-2 rounded-lg z-50 font-medium shadow-lg focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
         >
           Skip to main content
         </a>
 
-        {/* Main content wrapper */}
-        <div id="main-content" className="relative">
+        {/* Language switcher for screen readers */}
+        <div className="sr-only" aria-live="polite" id="language-announcer">
+          Digital Companion supports multiple languages including Hindi,
+          Punjabi, Bengali, and Tamil
+        </div>
+
+        {/* Main application container */}
+        <div id="main-content" className="relative min-h-screen">
           {children}
         </div>
 
-        {/* Toast notifications */}
-        <Toaster
-          richColors
-          position="top-center"
-          expand={true}
-          duration={4000}
-          closeButton={true}
-          toastOptions={{
-            className: "text-sm",
-            style: {
-              background: "hsl(var(--background))",
-              color: "hsl(var(--foreground))",
-              border: "1px solid hsl(var(--border))",
-            },
-          }}
-        />
+        {/* Emergency contact info (hidden but accessible) */}
+        <div className="sr-only">
+          <p>For emergency government services, call: 1800-XXX-XXXX</p>
+          <p>Digital Companion helpline: 1800-XXX-YYYY</p>
+        </div>
 
-        {/* Loading indicator for better UX */}
+        {/* Loading indicator */}
         <div
           id="loading-indicator"
-          className="fixed top-0 left-0 w-full h-1 bg-primary opacity-0 transition-opacity duration-300 z-50"
+          className="fixed top-0 left-0 w-full h-1 bg-gradient-to-r from-green-500 to-blue-500 opacity-0 transition-all duration-300 z-50"
           style={{ transform: "scaleX(0)", transformOrigin: "left" }}
+          role="progressbar"
+          aria-label="Page loading"
         />
 
-        {/* Service worker registration script */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              if ('serviceWorker' in navigator) {
-                window.addEventListener('load', function() {
-                  navigator.serviceWorker.register('/sw.js').then(function(registration) {
-                    console.log('SW registered: ', registration);
-                  }).catch(function(registrationError) {
-                    console.log('SW registration failed: ', registrationError);
-                  });
-                });
-              }
-            `,
-          }}
-        />
+        {/* Voice accessibility announcement */}
+        <div className="sr-only" aria-live="polite" id="voice-status">
+          Voice assistance is available on this page
+        </div>
       </body>
     </html>
   );
