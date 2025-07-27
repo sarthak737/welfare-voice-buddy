@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Sun, Moon, HeartHandshake } from "lucide-react";
+import Link from "next/link";
 const Header = () => {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isLoaded, setIsLoaded] = useState(false);
@@ -40,14 +41,14 @@ const Header = () => {
         <div className="w-10 h-10 bg-gradient-to-r from-green-500 to-blue-500 rounded-xl flex items-center justify-center">
           <HeartHandshake className="h-6 w-6 text-white" />
         </div>
-        <div>
+        <Link href="/">
           <h1 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-green-600 to-blue-600 dark:from-green-400 dark:to-blue-400 bg-clip-text text-transparent">
             Welfare Voice Buddy
           </h1>
           <p className="text-xs text-gray-500 dark:text-gray-400">
             Your Government Services Helper
           </p>
-        </div>
+        </Link>
       </div>
       <button
         onClick={toggleTheme}
