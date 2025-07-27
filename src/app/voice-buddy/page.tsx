@@ -479,8 +479,8 @@ export default function VoiceBuddyLite() {
                             ? "Stop & Process"
                             : "रोकें और प्रक्रिया करें"
                           : language === "en"
-                          ? "Start Listening"
-                          : "सुनना शुरू करें"}
+                          ? "Ask"
+                          : "पूछना शुरू करें"}
                       </span>
                     </div>
                   </button>
