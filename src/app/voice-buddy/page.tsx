@@ -413,7 +413,7 @@ export default function VoiceBuddyLite() {
                     onClick={() =>
                       setLanguage((lang) => (lang === "en" ? "hi" : "en"))
                     }
-                    className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors flex items-center gap-2"
+                    className="cursor-pointer px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors flex items-center gap-2"
                   >
                     <Languages className="w-4 h-4" />
                     <span>
@@ -461,7 +461,7 @@ export default function VoiceBuddyLite() {
                   <button
                     onClick={toggleListening}
                     disabled={loading || isSpeaking}
-                    className={`group relative px-8 py-4 rounded-2xl font-semibold transition-all duration-300 ${
+                    className={`curosr-pointer group relative px-8 py-4 rounded-2xl font-semibold transition-all duration-300 ${
                       listening
                         ? "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-lg shadow-red-500/25"
                         : "bg-gradient-to-r from-green-600 to-blue-600  hover:from-green-700 hover:to-blue-700 shadow-lg shadow-green-500/25"
@@ -488,7 +488,7 @@ export default function VoiceBuddyLite() {
                   {isSpeaking && (
                     <button
                       onClick={stopSpeaking}
-                      className="px-6 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/25"
+                      className="cursor-pointer px-6 py-4 bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 text-white rounded-2xl font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg shadow-orange-500/25"
                     >
                       {uiText[language].stopSpeaking}
                     </button>
@@ -570,7 +570,7 @@ export default function VoiceBuddyLite() {
                       <button
                         onClick={() => speak(response)}
                         disabled={isSpeaking || loading}
-                        className="px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-green-500/25"
+                        className="cursor-pointer px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-green-500/25"
                       >
                         <div className="flex items-center gap-2">
                           <Volume2 className="w-4 h-4" />
