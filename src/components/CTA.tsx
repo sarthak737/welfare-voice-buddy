@@ -21,7 +21,7 @@ const CTA = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
                 onClick={() => (window.location.href = "/voice-buddy")}
-                className="group w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 bg-white text-green-600 rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
+                className="cursor-pointer group w-full sm:w-auto px-8 sm:px-10 py-4 sm:py-5 bg-white text-green-600 rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg shadow-xl hover:shadow-2xl transition-all duration-300 transform hover:scale-105 hover:-translate-y-1"
               >
                 <div className="flex items-center justify-center">
                   <Mic className="mr-3 h-5 sm:h-6 w-5 sm:w-6 group-hover:animate-pulse" />

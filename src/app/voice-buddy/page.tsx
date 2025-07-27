@@ -9,28 +9,20 @@ import {
   StopCircle,
   Volume2,
   AlertCircle,
-  Sparkles,
   Bot,
   User,
-  Clock,
-  Waves,
   Languages,
 } from "lucide-react";
 
-interface HistoryEntry {
-  command: string;
-  response: string;
-  time: string;
-  id: string;
-  language: "en" | "hi";
-}
+import { uiText } from "@/lib/uiText";
+import Header from "@/components/Header";
+import Footer from "@/components/Footer";
 
 export default function VoiceBuddyLite() {
   const [response, setResponse] = useState("");
   const [loading, setLoading] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [waveAnimation, setWaveAnimation] = useState([0, 0, 0, 0, 0]);
   const [language, setLanguage] = useState<"en" | "hi">("en");
   const [browserCompatibility, setBrowserCompatibility] = useState({
@@ -53,16 +45,6 @@ export default function VoiceBuddyLite() {
       speechRecognition: speechRecognitionSupported,
       speechSynthesis: speechSynthesisSupported,
     });
-
-    // Load history from localStorage
-    const savedHistory = localStorage.getItem("voiceBuddyHistory");
-    if (savedHistory) {
-      try {
-        setHistory(JSON.parse(savedHistory));
-      } catch (err) {
-        console.error("Failed to parse history", err);
-      }
-    }
   }, []);
 
   const {
@@ -91,24 +73,6 @@ export default function VoiceBuddyLite() {
       }
     };
   }, [listening]);
-
-  // Save to history
-  const saveToHistory = useCallback(
-    (command: string, response: string) => {
-      const entry: HistoryEntry = {
-        command,
-        response,
-        time: new Date().toISOString(),
-        id: `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        language,
-      };
-
-      const newHistory = [entry, ...history].slice(0, 20);
-      setHistory(newHistory);
-      localStorage.setItem("voiceBuddyHistory", JSON.stringify(newHistory));
-    },
-    [history, language]
-  );
 
   const speak = useCallback(
     (text: string) => {
@@ -159,11 +123,11 @@ export default function VoiceBuddyLite() {
       utter.onerror = (event) => {
         console.error("Speech synthesis error:", event);
         setIsSpeaking(false);
-        setError(
-          language === "en"
-            ? "Error occurred during speech synthesis"
-            : "ध्वनि प्रतिक्रिया में त्रुटि हुई"
-        );
+        // setError(
+        //   language === "en"
+        //     ? "Error occurred during speech synthesis"
+        //     : "ध्वनि प्रतिक्रिया में त्रुटि हुई"
+        // );
         currentUtterance.current = null;
       };
 
@@ -219,7 +183,6 @@ export default function VoiceBuddyLite() {
 
       const data = await response.json();
       setResponse(data.response);
-      saveToHistory(command, data.response);
 
       if (browserCompatibility.speechSynthesis) {
         speak(data.response);
@@ -239,13 +202,7 @@ export default function VoiceBuddyLite() {
     } finally {
       setLoading(false);
     }
-  }, [
-    transcript,
-    speak,
-    browserCompatibility.speechSynthesis,
-    saveToHistory,
-    language,
-  ]);
+  }, [transcript, speak, browserCompatibility.speechSynthesis, language]);
 
   const startListening = useCallback(() => {
     if (!browserSupportsSpeechRecognition) {
@@ -419,65 +376,14 @@ export default function VoiceBuddyLite() {
   }
 
   // UI text based on language
-  const uiText = {
-    en: {
-      title: "Voice Buddy",
-      subtitle: "Your intelligent voice assistant",
-      listening: "Listening...",
-      speakNow: "Speak now...",
-      startPrompt: "Press start and begin speaking",
-      responsePlaceholder: "Response will appear here",
-      history: "History",
-      noHistory: "No conversations yet",
-      startHistory: "Start speaking to build your history",
-      stopSpeaking: "Stop Speaking",
-      speakAgain: "Speak Again",
-      processing: "Processing your request...",
-      noSpeech: "No speech detected. Please try again.",
-    },
-    hi: {
-      title: "वॉइस बडी",
-      subtitle: "आपका बुद्धिमान आवाज सहायक",
-      listening: "सुन रहा हूँ...",
-      speakNow: "अब बोलें...",
-      startPrompt: "शुरू करें और बोलना शुरू करें",
-      responsePlaceholder: "प्रतिक्रिया यहां दिखाई देगी",
-      history: "इतिहास",
-      noHistory: "अभी तक कोई वार्तालाप नहीं",
-      startHistory: "अपना इतिहास बनाने के लिए बोलना शुरू करें",
-      stopSpeaking: "बोलना बंद करें",
-      speakAgain: "फिर से बोलें",
-      processing: "आपका अनुरोध प्रसंस्करण...",
-      noSpeech: "कोई आवाज नहीं मिली। कृपया पुनः प्रयास करें।",
-    },
-  };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 p-4">
-      {/* Animated background elements */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-400/20 to-pink-400/20 rounded-full blur-3xl animate-pulse [animation-delay:2s]"></div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 transition-all duration-700">
+      <Header />
 
-      <div className="relative z-10 flex items-center justify-center min-h-screen">
-        <div className="w-full max-w-4xl">
-          {/* Header */}
-          <div className="text-center mb-8">
-            <div className="inline-flex items-center gap-3 mb-4">
-              <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-2xl flex items-center justify-center">
-                <Sparkles className="w-6 h-6 text-white" />
-              </div>
-              <h1 className="text-4xl font-bold bg-gradient-to-r from-white to-blue-200 bg-clip-text text-transparent">
-                {uiText[language].title}
-              </h1>
-            </div>
-            <p className="text-blue-200/80 text-lg">
-              {uiText[language].subtitle}
-            </p>
-          </div>
-
-          <div className="grid lg:grid-cols-3 gap-6">
+      <div className="relative z-10 flex items-center justify-center min-h-screen p-5">
+        <div className="w-full max-w-5xl">
+          <div>
             {/* Main Voice Interface */}
             <div className="lg:col-span-2">
               <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-8 shadow-2xl">
@@ -510,7 +416,11 @@ export default function VoiceBuddyLite() {
                     className="px-4 py-2 bg-white/10 border border-white/20 rounded-xl text-white hover:bg-white/20 transition-colors flex items-center gap-2"
                   >
                     <Languages className="w-4 h-4" />
-                    <span>{language === "en" ? "हिंदी" : "English"}</span>
+                    <span>
+                      {language === "en"
+                        ? "हिंदी में बदलें"
+                        : "Chnage to English"}
+                    </span>
                   </button>
                 </div>
 
@@ -522,7 +432,7 @@ export default function VoiceBuddyLite() {
                         ? "bg-gradient-to-r from-red-500/20 to-pink-500/20 border-2 border-red-400/50"
                         : loading
                         ? "bg-gradient-to-r from-blue-500/20 to-purple-500/20 border-2 border-blue-400/50"
-                        : "bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-2 border-purple-400/30"
+                        : "bg-gradient-to-r from-green-600 to-blue-600  border-2 border-green-400/30"
                     }`}
                   >
                     {listening && (
@@ -554,7 +464,7 @@ export default function VoiceBuddyLite() {
                     className={`group relative px-8 py-4 rounded-2xl font-semibold transition-all duration-300 ${
                       listening
                         ? "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-lg shadow-red-500/25"
-                        : "bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 shadow-lg shadow-purple-500/25"
+                        : "bg-gradient-to-r from-green-600 to-blue-600  hover:from-green-700 hover:to-blue-700 shadow-lg shadow-green-500/25"
                     } text-white transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
                   >
                     <div className="flex items-center gap-3">
@@ -676,70 +586,10 @@ export default function VoiceBuddyLite() {
                 )}
               </div>
             </div>
-
-            {/* History Sidebar */}
-            <div className="lg:col-span-1">
-              <div className="bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl p-6 shadow-2xl h-full">
-                <div className="flex items-center justify-between mb-6">
-                  <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Clock className="w-5 h-5 text-purple-300" />
-                    {uiText[language].history}
-                  </h3>
-                  <div className="text-sm text-blue-200 bg-blue-500/20 px-3 py-1 rounded-full">
-                    {history.length} {language === "en" ? "saved" : "सहेजे गए"}
-                  </div>
-                </div>
-
-                {history.length > 0 ? (
-                  <div className="space-y-4 max-h-96 overflow-y-auto custom-scrollbar">
-                    {history.slice(0, 5).map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="bg-white/5 border border-white/10 rounded-xl p-4 hover:bg-white/10 transition-all duration-200"
-                      >
-                        <div className="space-y-2">
-                          <div className="flex items-start gap-2">
-                            <User className="w-3 h-3 text-blue-300 mt-1 flex-shrink-0" />
-                            <p className="text-sm text-blue-200 leading-tight">
-                              {entry.command}
-                            </p>
-                          </div>
-                          <div className="flex items-start gap-2">
-                            <Bot className="w-3 h-3 text-purple-300 mt-1 flex-shrink-0" />
-                            <p className="text-sm text-white/80 leading-tight">
-                              {entry.response.substring(0, 100)}...
-                            </p>
-                          </div>
-                          <div className="flex justify-between items-center">
-                            <p className="text-xs text-white/40">
-                              {new Date(entry.time).toLocaleTimeString()}
-                            </p>
-                            <span className="text-xs px-2 py-0.5 rounded-full bg-white/10">
-                              {entry.language === "en" ? "EN" : "HI"}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <Waves className="w-8 h-8 text-white/40" />
-                    </div>
-                    <p className="text-white/60">
-                      {uiText[language].noHistory}
-                    </p>
-                    <p className="text-white/40 text-sm mt-1">
-                      {uiText[language].startHistory}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </div>
           </div>
         </div>
       </div>
+      <Footer />
 
       <style jsx>{`
         .custom-scrollbar::-webkit-scrollbar {
