@@ -461,7 +461,7 @@ export default function VoiceBuddyLite() {
                   <button
                     onClick={toggleListening}
                     disabled={loading || isSpeaking}
-                    className={`curosr-pointer group relative px-8 py-4 rounded-2xl font-semibold transition-all duration-300 ${
+                    className={`cursor-pointer group relative px-8 py-4 rounded-2xl font-semibold transition-all duration-300 ${
                       listening
                         ? "bg-gradient-to-r from-red-500 to-pink-500 hover:from-red-600 hover:to-pink-600 shadow-lg shadow-red-500/25"
                         : "bg-gradient-to-r from-green-600 to-blue-600  hover:from-green-700 hover:to-blue-700 shadow-lg shadow-green-500/25"
